@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 #       PictureView
-#       Copyright (C) 2009 Sven Festersen
+#       Copyright 2009 Sven Festersen
 #
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@ An example of a very basic picture viewer is located in the 'demo'
 directory.
 
 Author: Sven Festersen (sven@sven-festersen.de)
+Homepage: http://sven-festersen.de
 License: GPL (see above)
 """
 import gobject

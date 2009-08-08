@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 #
-#       simple_viewer.py
-#       
-#       Copyright 2009 Sven Festersen <sven@sven-laptop>
+#       A simple PictureView demo
+#       Copyright 2009 Sven Festersen
 #       
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
@@ -18,6 +17,18 @@
 #       along with this program; if not, write to the Free Software
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
+"""
+This small application demonstrates the basic usage of the PictureView
+widget. 
+Run
+    python simple_viewer.py /path/to/picture
+to see it in action.
+
+Author: Sven Festersen (sven@sven-festersen.de)
+Homepage: http://sven-festersen.de
+License: GPL (see above)
+"""
+
 import gtk
 import os
 import pygtk
@@ -31,9 +42,17 @@ def make_title(window, view):
     window.set_title("%s (%s%%)" % (fn, percent))
 
 def cb_zoom(widget, zoom, window):
+    """
+    This callback is executed when the 'zoom-changed' signal of the
+    PictureView is emitted.
+    """
     make_title(window, widget)
     
 def cb_filename(widget, fn, window):
+    """
+    This callback is executed when the 'filename-changed' signal of the
+    PictureView is emitted.
+    """
     make_title(window, widget)
 
 if __name__ == "__main__":
@@ -41,6 +60,7 @@ if __name__ == "__main__":
     w.resize(400, 300)
     w.connect("destroy", gtk.main_quit)
     if len(sys.argv) < 2:
+        #no path to picture given => show blank view
         pw = PictureView()
     else:
         pw = PictureView(sys.argv[1])

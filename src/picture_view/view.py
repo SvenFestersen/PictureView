@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-
+#
+#       PictureView
+#       Copyright (C) 2009 Sven Festersen
+#
 #       This program is free software; you can redistribute it and/or modify
 #       it under the terms of the GNU General Public License as published by
 #       the Free Software Foundation; either version 2 of the License, or
@@ -15,7 +18,16 @@
 #       Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #       MA 02110-1301, USA.
 """
+PictureView is a PyGTK widget that can be used to build an application
+that shows pictures, e.g. a photo browser.
+Similar to the most dektop environments' picture viewers it has
+controls to zoom (zoom in, zoom out, fit to window, original size) the
+picture and to switch between pictures in a directory.
+An example of a very basic picture viewer is located in the 'demo'
+directory.
+
 Author: Sven Festersen (sven@sven-festersen.de)
+License: GPL (see above)
 """
 import gobject
 import gtk

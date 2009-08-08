@@ -1,0 +1,11 @@
+PictureView is a PyGTK widget that can be used to build an application
+that shows pictures, e.g. a photo browser.
+Similar to the most dektop environments' picture viewers it has
+controls to zoom (zoom in, zoom out, fit to window, original size) the
+picture and to switch between pictures in a directory.
+An example of a very basic picture viewer is located in the 'demo'
+directory.
+
+Author: Sven Festersen (sven@sven-festersen.de)
+Homepage: http://sven-festersen.de
+License: GPL

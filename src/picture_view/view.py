@@ -393,6 +393,7 @@ class PictureView(gtk.VBox):
         Load the next picture that's in the same directory as the
         current picture.
         """
+        if self._file_mode == FILEMODE_SINGLE: return
         if self._index < len(self._file_list) - 1:
             fn = self._file_list[self._index + 1]
             self._index += 1
@@ -406,6 +407,7 @@ class PictureView(gtk.VBox):
         Load the previous picture that's in the same directory as the
         current picture.
         """
+        if self._file_mode == FILEMODE_SINGLE: return
         if self._index > 0:
             fn = self._file_list[self._index - 1]
             self._index -= 1

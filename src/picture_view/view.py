@@ -129,10 +129,10 @@ class PictureView(gtk.VBox):
             files = get_image_files(dir)
             files.sort()
             self._file_list = map(lambda x: os.path.abspath(dir + os.sep + x), files)
-            self._index = 0
-            for i, fn in enumerate(self._file_list):
-                if fn == self._filename:
-                    self._index = i
+            try:
+                self._index = self._file_list.index(self._filename)
+            except:
+                self._index= 0
             self._dir = dir
             
     def _load_path(self, path):

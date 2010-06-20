@@ -149,7 +149,8 @@ class PictureView(gtk.VBox):
             self._filename = path
             self._pixbuf = gtk.gdk.pixbuf_new_from_file(self._filename)
             self._scale_pixbuf()
-            self._init_file_list(os.path.dirname(self._filename))
+            if self._file_mode != FILEMODE_LIST:
+                self._init_file_list(os.path.dirname(self._filename))
             self.emit("filename-changed", self._filename)
             self._control_box.set_sensitive(True)
         elif os.path.isdir(path):
@@ -436,7 +437,8 @@ class PictureView(gtk.VBox):
         (FILEMODE_DIR), only a single image (FILEMODE_SINGLE) or a list
         of images (FILEMODE_LIST).
         If mode is FILEMODE_SINGLE, the navigation controls are hidden.
-        If mode is FILEMODE_LIST, a file list has to be given.
+        If mode is FILEMODE_LIST, a file list has to be given by calling
+        set_file_list().
         
         @param mode: the file mode
         @type mode: one of the file mode constants above
@@ -525,3 +527,16 @@ class PictureView(gtk.VBox):
         @return: float.
         """
         return self.get_property("zoom")
+        
+    def set_file_list(self, files):
+        """
+        Set a list of files that should be shown. This sets the file
+        mode to FILEMODE_LIST.
+        
+        @param files: a list of file paths
+        @type files: list of strings
+        """
+        self.set_property("file-mode", FILEMODE_LIST)
+        self._file_list = files
+        self._index = 0
+        self._load_path(files[0])

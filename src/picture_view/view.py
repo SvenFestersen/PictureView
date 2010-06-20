@@ -58,12 +58,9 @@ def get_image_files(dir):
     Returns a list of all image files in the directory dir that are
     supported by gtk.gdk.Pixbuf.
     """
-    res = []
-    for filename in os.listdir(dir):
-        fnlow = filename.lower()
-        base, ext = os.path.splitext(fnlow)
-        if ext.strip(".") in SUPPORTED_EXTENSIONS:
-            res.append(filename)
+    res = os.listdir(dir)
+    res = filter(lambda x: os.path.splitext(x.lower())[1].strip(".") in\
+                    SUPPORTED_EXTENSIONS, res)
     res.sort()
     return res
     

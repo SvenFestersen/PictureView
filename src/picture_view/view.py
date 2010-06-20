@@ -124,8 +124,7 @@ class PictureView(gtk.VBox):
         if filename:
             self.set_property("filename", filename)
         
-    def _init_file_list(self):
-        dir = os.path.dirname(self._filename)
+    def _init_file_list(self, dir):
         if dir != self._dir:
             files = get_image_files(dir)
             files.sort()
@@ -142,9 +141,18 @@ class PictureView(gtk.VBox):
             self._filename = path
             self._pixbuf = gtk.gdk.pixbuf_new_from_file(self._filename)
             self._scale_pixbuf()
-            self._init_file_list()
+            self._init_file_list(os.path.dirname(self._filename))
             self.emit("filename-changed", self._filename)
             self._control_box.set_sensitive(True)
+        elif os.path.isdir(path):
+            self._init_file_list(path)
+            if len(self._file_list) > 0:
+                self._index = 0
+                self._filename = self._file_list[0]
+                self._pixbuf = gtk.gdk.pixbuf_new_from_file(self._filename)
+                self._scale_pixbuf()
+                self.emit("filename-changed", self._filename)
+                self._control_box.set_sensitive(True)
         
     def do_get_property(self, property):
         if property.name == "mode":

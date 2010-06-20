@@ -116,9 +116,7 @@ class PictureView(gtk.VBox):
         self.connect("size-allocate", self._cb_allocate)
         
         if filename:
-            self._pixbuf = gtk.gdk.pixbuf_new_from_file(filename)
-            self._init_file_list()
-            self.emit("filename-changed", self._filename)
+            self.set_property("filename", filename)
         
     def _init_file_list(self):
         dir = os.path.dirname(self._filename)
@@ -151,11 +149,15 @@ class PictureView(gtk.VBox):
             self._mode = value
             self._scale_pixbuf()
         elif property.name == "filename":
-            self._filename = os.path.abspath(value)
-            self._pixbuf = gtk.gdk.pixbuf_new_from_file(self._filename)
-            self._scale_pixbuf()
-            self._init_file_list()
-            self.emit("filename-changed", self._filename)
+            try:
+                self._filename = os.path.abspath(value)
+                self._pixbuf = gtk.gdk.pixbuf_new_from_file(self._filename)
+                self._scale_pixbuf()
+                self._init_file_list()
+                self.emit("filename-changed", self._filename)
+                self._control_box.set_sensitive(True)
+            except:
+                pass
         elif property.name == "show-navigation":
             self._show_navigation = value
             if value:
@@ -191,6 +193,7 @@ class PictureView(gtk.VBox):
         self._hbox_navigation = gtk.HBox()
         self._hbox_zoom = gtk.HBox()
         hbox = gtk.HBox()
+        hbox.set_sensitive(False)
         
         hbox.set_spacing(6)
         hbox.set_border_width(6)
@@ -254,6 +257,7 @@ class PictureView(gtk.VBox):
         hbox.pack_start(self._label_info)
         
         self.pack_start(hbox, False, False)
+        self._control_box = hbox
         
     def _scale_pixbuf(self):
         if self._pixbuf == None: return

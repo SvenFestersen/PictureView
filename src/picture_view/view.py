@@ -66,6 +66,15 @@ def get_image_files(dir):
             res.append(filename)
     res.sort()
     return res
+    
+def is_image(filename):
+    """
+    Test if the file given by filename is an image file supported by
+    gtk.gdk.Pixbuf.
+    """
+    fnlow = filename.lower()
+    base, ext = os.path.splitext(fnlow)
+    return ext.strip(".") in SUPPORTED_EXTENSIONS
 
 
 class PictureView(gtk.VBox):
@@ -129,6 +138,16 @@ class PictureView(gtk.VBox):
                 if fn == self._filename:
                     self._index = i
             self._dir = dir
+            
+    def _load_path(self, path):
+        path = os.path.abspath(path)
+        if os.path.isfile(path) and is_image(path):
+            self._filename = path
+            self._pixbuf = gtk.gdk.pixbuf_new_from_file(self._filename)
+            self._scale_pixbuf()
+            self._init_file_list()
+            self.emit("filename-changed", self._filename)
+            self._control_box.set_sensitive(True)
         
     def do_get_property(self, property):
         if property.name == "mode":
@@ -150,12 +169,7 @@ class PictureView(gtk.VBox):
             self._scale_pixbuf()
         elif property.name == "filename":
             try:
-                self._filename = os.path.abspath(value)
-                self._pixbuf = gtk.gdk.pixbuf_new_from_file(self._filename)
-                self._scale_pixbuf()
-                self._init_file_list()
-                self.emit("filename-changed", self._filename)
-                self._control_box.set_sensitive(True)
+                self._load_path(value)
             except:
                 pass
         elif property.name == "show-navigation":

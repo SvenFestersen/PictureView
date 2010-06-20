@@ -52,6 +52,10 @@ SUPPORTED_EXTENSIONS = get_supported_extensions()
 MODE_FIT_WINDOW = 0
 MODE_FIXED_ZOOM = 1
 
+FILEMODE_DIR = 0
+FILEMODE_SINGLE = 1
+FILEMODE_LIST = 2
+
 
 def get_image_files(dir):
     """
@@ -79,6 +83,9 @@ class PictureView(gtk.VBox):
     __gproperties__ = {"mode": (gobject.TYPE_INT, "view mode",
                                 "The mode of the view.",
                                 0, 1, 0, gobject.PARAM_READWRITE),
+                        "file-mode": (gobject.TYPE_INT, "file mode",
+                                "The file mode of the view.",
+                                0, 2, 0, gobject.PARAM_READWRITE),
                         "filename": (gobject.TYPE_STRING, "filename",
                                 "The picture filename.", "",
                                 gobject.PARAM_READWRITE),
@@ -106,6 +113,7 @@ class PictureView(gtk.VBox):
         self._zoom = 1.0
         self._show_navigation = True
         self._mode = MODE_FIT_WINDOW
+        self._file_mode = FILEMODE_DIR
         self._filename = os.path.abspath(filename)
         self._dir = ""
         self._file_list = []
@@ -172,6 +180,18 @@ class PictureView(gtk.VBox):
         if property.name == "mode":
             self._mode = value
             self._scale_pixbuf()
+        elif property.name == "file-mode":
+            if value == FILEMODE_DIR:
+                self._hbox_navigation.set_property("visible", True)
+                self._separator_navigation.set_property("visible", True)
+            elif value == FILEMODE_SINGLE:
+                self._hbox_navigation.set_property("visible", False)
+                self._separator_navigation.set_property("visible", False)
+            elif value == FILEMODE_LIST:
+                self._hbox_navigation.set_property("visible", True)
+                self._separator_navigation.set_property("visible", True)
+            self._file_mode = value
+            self._info_changed()
         elif property.name == "filename":
             try:
                 self._load_path(value)
@@ -344,7 +364,10 @@ class PictureView(gtk.VBox):
         fn = os.path.basename(self._filename)
         txt = "%s" % fn
         if self._show_navigation:
-            txt = "%s (%s/%s)" % (fn, self._index + 1, len(self._file_list))
+            if self._file_mode in [FILEMODE_DIR, FILEMODE_LIST]:
+                txt = "%s (%s/%s)" % (fn, self._index + 1, len(self._file_list))
+            else:
+                txt = fn
         self._label_info.set_label(txt)
         
     def _cb_key_press_event(self, widget, event):
@@ -406,6 +429,27 @@ class PictureView(gtk.VBox):
         @return: gtk.gdk.Color.
         """
         return self.get_property("background-color")
+        
+    def set_filemode(self, mode):
+        """
+        Set whether the widget should show all images in the directory
+        (FILEMODE_DIR), only a single image (FILEMODE_SINGLE) or a list
+        of images (FILEMODE_LIST).
+        If mode is FILEMODE_SINGLE, the navigation controls are hidden.
+        If mode is FILEMODE_LIST, a file list has to be given.
+        
+        @param mode: the file mode
+        @type mode: one of the file mode constants above
+        """
+        self.set_property("file-mode", mode)
+        
+    def get_filemode(self):
+        """
+        Returns the current file mode (see set_filemode() for details).
+        
+        @return a file mode constant
+        """
+        return self.get_property("file-mode")
         
     def set_filename(self, filename):
         """

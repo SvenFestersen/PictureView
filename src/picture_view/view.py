@@ -98,7 +98,11 @@ class PictureView(gtk.VBox):
                                                 "The background color.",
                                                 gobject.PARAM_READWRITE),
                         "zoom": (gobject.TYPE_FLOAT, "zoom factor",
-                                "The zoom factor.", 0.0, 100, 1.0, gobject.PARAM_READWRITE)}
+                                "The zoom factor.", 0.0, 100, 1.0, gobject.PARAM_READWRITE),
+                        "fullscreen": (gobject.TYPE_BOOLEAN,
+                                            "set fullscreen",
+                                            "Set whether to display the image in fullscreen mode",
+                                            False, gobject.PARAM_READWRITE)}
                                 
     __gsignals__ = {"zoom-changed": (gobject.SIGNAL_RUN_LAST,
                                         gobject.TYPE_NONE,
@@ -110,10 +114,15 @@ class PictureView(gtk.VBox):
     def __init__(self, filename=""):
         gtk.VBox.__init__(self)
         
+        self._current_image = None
+        self._current_sw = None
+        
         self._zoom = 1.0
         self._show_navigation = True
         self._mode = MODE_FIT_WINDOW
         self._file_mode = FILEMODE_DIR
+        self._fullscreen = False
+        self._fullscreen_window = None
         self._filename = os.path.abspath(filename)
         self._dir = ""
         self._file_list = []
@@ -174,6 +183,8 @@ class PictureView(gtk.VBox):
             return self._background_color
         elif property.name == "zoom":
             return self._zoom
+        elif property.name == "fullscreen":
+            return self._fullscreen
         else:
             raise AttributeError, "Property %s does not exist." % property.name
 
@@ -214,6 +225,9 @@ class PictureView(gtk.VBox):
             self._zoom = value
             self._mode = MODE_FIXED_ZOOM
             self._scale_pixbuf()
+        elif property.name == "fullscreen":
+            self._fullscreen = value
+            self._update_fullscreen()
         else:
             raise AttributeError, "Property %s does not exist." % property.name
 
@@ -228,6 +242,8 @@ class PictureView(gtk.VBox):
         self._event_box.add(self._image)
         self._scrolled.add_with_viewport(self._event_box)
         self.pack_start(self._scrolled)
+        self._current_image = self._image
+        self._current_sw = self._scrolled
         
     def _init_controls(self):
         self._hbox_navigation = gtk.HBox()
@@ -305,8 +321,10 @@ class PictureView(gtk.VBox):
         p_height = self._pixbuf.get_height()
         
         if self._mode == MODE_FIT_WINDOW:
-            self._scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_NEVER)
-            s_x, s_y, s_width, s_height = self._scrolled.get_allocation()
+            #self._scrolled.set_policy(gtk.POLICY_NEVER, gtk.POLICY_NEVER)
+            self._current_sw.set_policy(gtk.POLICY_NEVER, gtk.POLICY_NEVER)
+            #s_x, s_y, s_width, s_height = self._scrolled.get_allocation()
+            s_x, s_y, s_width, s_height = self._current_sw.get_allocation()
             if p_width > s_width or p_height > s_height:
                 a = float(s_width) / p_width
                 b = float(s_height) / p_height
@@ -322,12 +340,14 @@ class PictureView(gtk.VBox):
                 self._zoom = 1.0
                 self.emit("zoom-changed", self._zoom)
         else:
-            self._scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            #self._scrolled.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self._current_sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             n_width = int(p_width * self._zoom)
             n_height = int(p_height * self._zoom)
             pb = self._pixbuf.scale_simple(n_width, n_height, gtk.gdk.INTERP_HYPER)
         
-        self._image.set_from_pixbuf(pb)
+        #self._image.set_from_pixbuf(pb)
+        self._current_image.set_from_pixbuf(pb)
         
     def _cb_allocate(self, widget, allocation):
         self._scale_pixbuf()
@@ -386,7 +406,44 @@ class PictureView(gtk.VBox):
             self._cb_button_zoom_in(widget)
         elif event.keyval == 45:
             self._cb_button_zoom_out(widget)
+        elif event.keyval == 65480 and not self._fullscreen:
+            self.set_property("fullscreen", True)
+        elif event.keyval == 65307 or (event.keyval == 65480 and self._fullscreen):
+            self.set_property("fullscreen", False)
         self.grab_focus()
+        print event.keyval
+        
+    def _cb_fullscreen_window_destroy(self, widget):
+        self.set_property("fullscreen", False)
+        
+    def _update_fullscreen(self):
+        if self._fullscreen and self._fullscreen_window == None:
+            self._fullscreen_window = gtk.Window()
+            
+            fs_img = gtk.image_new_from_pixbuf(self._pixbuf)
+            event_box = gtk.EventBox()
+            sw = gtk.ScrolledWindow()
+            sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            sw.add_with_viewport(event_box)
+            
+            event_box.modify_bg(gtk.STATE_NORMAL, self._background_color)
+            self._fullscreen_window.connect("destroy", self._cb_fullscreen_window_destroy)
+            self._fullscreen_window.connect("size-allocate", self._cb_allocate)
+            self._fullscreen_window.connect("key-press-event", self._cb_key_press_event)
+            event_box.add(fs_img)
+            self._fullscreen_window.add(sw)
+            self._fullscreen_window.fullscreen()
+            self._fullscreen_window.show_all()
+            
+            self._current_sw = sw
+            self._current_image = fs_img
+            self._scale_pixbuf()
+        else:
+            self._fullscreen_window.hide()
+            self._fullscreen_window = None
+            self._current_sw = self._scrolled
+            self._current_image = self._image
+            self._scale_pixbuf()
         
     def next(self):
         """
@@ -473,6 +530,22 @@ class PictureView(gtk.VBox):
         @return: string.
         """
         return self.get_property("filename")
+        
+    def set_fullscreen(self, fullscreen):
+        """
+        Set whether the image should be displayed in fullscreen mode.
+        
+        @type fullscreen: boolean.
+        """
+        self.set_property("fullscreen", fullscreen)
+        
+    def get_fullscreen(self):
+        """
+        Returns True if the image is shown in fullscreen mode.
+        
+        @return: boolean.
+        """
+        return self.get_property("fullscreen")
         
     def set_mode(self, mode):
         """

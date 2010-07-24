@@ -411,7 +411,6 @@ class PictureView(gtk.VBox):
         elif event.keyval == 65307 or (event.keyval == 65480 and self._fullscreen):
             self.set_property("fullscreen", False)
         self.grab_focus()
-        print event.keyval
         
     def _cb_fullscreen_window_destroy(self, widget):
         self.set_property("fullscreen", False)
